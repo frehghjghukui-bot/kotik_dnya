@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Кот дня — Случайный пушистик</title>
+  <style>
+    body{margin:0;font-family:Arial, sans-serif;background:#0f1724;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh}
+    .wrap{max-width:800px;width:100%;padding:20px;text-align:center}
+    img{max-width:100%;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.3)}
+    button{cursor:pointer;margin:10px;padding:10px 20px;border:none;border-radius:8px;background:#f6a821;color:#000;font-weight:bold}
+    .counter{margin-top:10px;color:#ccc}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Кот дня 🐱</h1>
+    <p>Смешные коты на каждый день — жми «Показать ещё кота»!</p>
+    <div id="photo">
+      <img id="catImg" alt="Кот дня" src="">
+    </div>
+    <div class="caption" id="caption">Загружаем кота...</div>
+    <button id="nextBtn">Показать ещё кота</button>
+    <div class="counter" id="counter">Котов просмотрено: 0</div>
+  </div>
+
+  <script>
+    const capStart = [
+      'Я не ленюсь, я экономлю энергию',
+      'Почти проснулся, но подумал — нет',
+      'Не трогай меня, это моё солнце',
+      'Я слышал слово «еда» и потерял память',
+      'Эксперт по лежанию и наблюдению'
+    ];
+    const capMiddle = [
+      'планировал завоевать диван',
+      'ведёт переговоры с холодильником',
+      'писал мемуары, но забыл заголовок',
+      'проводит инспекцию мягкости подушки',
+      'тестировал закон притяжения к подушке'
+    ];
+    const capEnd = [
+      '— и это серьёзно.',
+      '...потому что я художник сна.',
+      '— диплом по ленивоведению получен.',
+      '— тихо, идёт важный отдых.',
+      '— пожалуйста, принесите закуску.'
+    ];
+
+    const STORAGE_KEY = 'kotdnya_seen_count';
+    let cats = [];
+    let index = 0;
+
+    function getSeen(){return parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10)}
+    function setSeen(v){localStorage.setItem(STORAGE_KEY, String(v));}
+    function updateCounter(){document.getElementById('counter').textContent = `Котов просмотрено: ${getSeen()}`}
+
+    function randomCaption(){
+      const s = capStart[Math.floor(Math.random()*capStart.length)];
+      const m = capMiddle[Math.floor(Math.random()*capMiddle.length)];
+      const e = capEnd[Math.floor(Math.random()*capEnd.length)];
+      return `${s} ${m} ${e}`;
+    }
+
+    async function loadCats(){
+      try {
+        const res = await fetch('https://api.thecatapi.com/v1/images/search?limit=20');
+        cats = await res.json();
+        index = 0;
+        showCat();
+      } catch(e){
+        document.getElementById('caption').textContent = 'Не удалось загрузить кота 😿';
+      }
+    }
+
+    function showCat(){
+      if (index >= cats.length) {
+        loadCats();
+        return;
+      }
+      const cat = cats[index];
+      document.getElementById('catImg').src = cat.url;
+      document.getElementById('caption').textContent = randomCaption();
+      setSeen(getSeen() + 1);
+      updateCounter();
+      index++;
+    }
+
+    document.getElementById('nextBtn').addEventListener('click', showCat);
+
+    updateCounter();
+    loadCats();
+  </script>
+</body>
+</html>
